@@ -37,10 +37,11 @@ This program will also ask for the following...
 - Phone Number
 - Address
 
-Once you have either bought 5 pizzas or wish to finish your order
+You can buy 3 pizzas per order with a maximum of 5 pizzas overall.
+Once you have either bought 5 pizzas or wish to finish your order.
 the program will display the information on your pizza.
 Enter corresponding number for items on menu to purchase.
-If buying with credit ad a surcharge of 2%
+If buying with credit ad a surcharge of 2%.
 
 
     ''')
