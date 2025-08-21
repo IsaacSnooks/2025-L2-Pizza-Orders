@@ -1,8 +1,10 @@
 import pandas
-import numpy as np
+from datetime import date
 import math
+import numpy as np
 
-# --- Functions go here ---
+
+# Functions go here
 def make_statement(statement, decoration):
     """Emphasis headings by adding decoration at the start and end"""
     return f"{decoration * 3} {statement} {decoration * 3}"
@@ -24,16 +26,22 @@ def instructions():
     print('''
 
 For each pizza wanted type...
-- The pizza number
+- The pizzas name
 - How many pizzas
 - The size
 - Extra toppings
 
 The program will record the amount of pizzas, the types of pizzas, the size of pizzas, the extra toppings, and the cost.
+This program will also ask for the following...
+- Your Name
+- Phone Number
+- Address
 
 Once you have either bought 5 pizzas or wish to finish your order
-the program will display the information on your pizza and write the data to a text file. 
+the program will display the information on your pizza.
 Enter corresponding number for items on menu to purchase.
+If buying with credit ad a surcharge of 2%
+
 
     ''')
 
@@ -53,6 +61,7 @@ def string_check(question, valid_answer, num_letters=1):
 def menu():
     print(make_statement("Menu", "📃"))
     print('''
+
 Pizzas: 
 1. Peperoni
 2. Meat Lovers
@@ -68,7 +77,8 @@ Extra Toppings:
 5. Chicken
 
 All Extra Toppings $1
-    ''')
+
+       ''')
 
 
 def not_blank(question):
@@ -77,7 +87,7 @@ def not_blank(question):
         response = input(question)
         if response != "":
             return response
-        print("Sorry, this cant be blank. Please try again.\n")
+        print("Sorry, this can't be blank. Please try again.\n")
 
 
 def num_check(question, low, high):
@@ -92,6 +102,16 @@ def num_check(question, low, high):
                 print(error)
         except ValueError:
             print(error)
+
+
+def currency(x):
+    """Formats numbers as currency ($#.##)"""
+    return "${:.2f}".format(x)
+
+
+def round_up(amount, round_val):
+    """Rounds amount to desired whole number"""
+    return int(math.ceil(amount / round_val)) * round_val
 
 
 def get_valid_phone():
@@ -131,47 +151,25 @@ def get_customer_details():
         "address": address
     }
 
-# --- Main order routine ---
-def order():
-    global cust_order_frame
-    MAX_PIZZAS = 5
-    MAX_PER_ORDER = 3
 
-    size_options = ["large", "medium", "small"]
+def get_payment_method():
+    """Ask the customer how they want to pay (cash or credit)."""
+    return string_check("Would you like to pay with cash or credit? ", ["cash", "credit"], 1)
 
-    pizza_list = [
-        "Peperoni", "Meat Lovers", "Hawaiian", "Cheese", "Margarita"
-    ]
-    toppings_list = [
-        "Cheese", "Ham", "Pineapple", "Bacon", "Chicken"
-    ]
 
-    extra_topping_price = 1
-
-    cust_pizza = []
-    cust_pizza_amount = []
-    cust_pizza_size = []
-    cust_pizza_cost = []
-    cust_extra_toppings = []
-
-    total_pizza_made = 0
-    total_cost_pizza = 0
-
-    # --- Get customer details once ---
+# ---------------- Main Ordering System ----------------
+def order(total_pizza_made, total_cost_pizza):
     customer = get_customer_details()
 
-    # --- Add delivery fee if needed ---
     if customer["delivery_method"] == "delivery":
         delivery_fee = 3.00
         print(f"A delivery fee of ${delivery_fee:.2f} has been added to your order.")
         total_cost_pizza += delivery_fee
 
-    # --- Order loop ---
+    cust_pizza, cust_pizza_size, cust_pizza_cost, cust_extra_toppings, cust_pizza_amount = [], [], [], [], []
+
     while True:
         max_remaining = MAX_PIZZAS - total_pizza_made
-        if max_remaining == 0:
-            print("You have reached the maximum number of pizzas allowed.")
-            break
         max_allowed = min(MAX_PER_ORDER, max_remaining)
 
         pizza_type = num_check("Which pizza? (1-5): ", 1, 5)
@@ -183,26 +181,24 @@ def order():
 
         print(f"You have purchased {quantity_made} {pizza_list[pizza_type - 1]} pizzas!")
 
-        print("Sizes and Prices for Pizzas: Large ($10) Medium ($7.50) Small ($5)")
+        print("Sizes and Prices: Large ($10) Medium ($7.50) Small ($5)")
         pizza_size = string_check("Enter the size: ", size_options)
-        if pizza_size in ["large", "l"]:
-            pizza_size = "large"
+
+        if pizza_size == "large":
             pizza_price = 10
-        elif pizza_size in ["medium", "m"]:
-            pizza_size = "medium"
+        elif pizza_size == "medium":
             pizza_price = 7.50
         else:
-            pizza_size = "small"
             pizza_price = 5
+
         cust_pizza_size.append(pizza_size)
 
         extra_toppings = yes_no_check("Would you like extra toppings on your pizza? ")
         if extra_toppings == "yes":
             ask_extra_toppings = num_check("Which extra toppings? (1-5): ", 1, 5)
-            topping_name = toppings_list[ask_extra_toppings - 1]
-            print(f"You have purchased {topping_name}!")
-            pizza_price += extra_topping_price
-            cust_extra_toppings.append(topping_name)
+            print(f"You have purchased {toppings_list[ask_extra_toppings - 1]}!")
+            pizza_price += 1
+            cust_extra_toppings.append(toppings_list[ask_extra_toppings - 1])
         else:
             print("No extra toppings will be added to your pizza.")
             cust_extra_toppings.append("None")
@@ -218,22 +214,24 @@ def order():
             'Extra Toppings': cust_extra_toppings,
             'Cost': cust_pizza_cost
         }
+
         cust_order_frame = pandas.DataFrame(cust_order_dict)
         cust_order_frame.index = np.arange(1, len(cust_order_frame) + 1)
 
         print(cust_order_frame)
-        print(f"Current total: ${total_cost_pizza:.2f}")
+        print(f"You have spent a total of ${total_cost_pizza:.2f}")
 
         if total_pizza_made >= MAX_PIZZAS:
             print("Max pizzas bought!")
             break
 
+        print(f"You currently have {total_pizza_made} pizzas, you can buy {MAX_PIZZAS - total_pizza_made} more!")
         another_pizza = yes_no_check("Would you like another flavour of pizza? ")
         if another_pizza == "no":
             break
 
-    # --- Final receipt ---
-    print(make_statement("FINAL RECEIPT", "🧾"))
+    # --- Confirmation ---
+    print(make_statement("ORDER SUMMARY", "🧾"))
     print(f"Customer: {customer['name']}")
     print(f"Phone: {customer['phone']}")
     if customer['delivery_method'] == "delivery":
@@ -243,10 +241,16 @@ def order():
     print()
     print(cust_order_frame)
     print(f"TOTAL COST: ${total_cost_pizza:.2f}")
-    print(make_statement("Thank you for shopping at Isaacs Pizzas!", "🍕"))
+    print()
 
     confirm = yes_no_check("Do you want to confirm this order? ")
     if confirm == "yes":
+        payment_method = get_payment_method()
+        if payment_method == "credit":
+            surcharge = total_cost_pizza * 0.02
+            total_cost_pizza += surcharge
+            print(f"A 2% credit surcharge of ${surcharge:.2f} has been added.")
+
         print(make_statement("FINAL RECEIPT", "🧾"))
         print(f"Customer: {customer['name']}")
         print(f"Phone: {customer['phone']}")
@@ -257,18 +261,33 @@ def order():
         print()
         print(cust_order_frame)
         print(f"TOTAL COST: ${total_cost_pizza:.2f}")
+        print(f"Payment Method: {payment_method.capitalize()}")
         print(make_statement("Thank you for shopping at Isaacs Pizzas!", "🍕"))
     else:
         print(make_statement("ORDER CANCELLED", "❌"))
 
 
-# --- Main program ---
-print(make_statement("Isaacs Pizza Shop", "🍕"))
+# ---------------- Program Starts ----------------
+MAX_PIZZAS = 5
+MAX_PER_ORDER = 3
+total_pizza_made = 0
+total_cost_pizza = 0
 
-if yes_no_check("Do you want to see the instructions? ") == "yes":
+size_options = ["large", "medium", "small"]
+pizza_list = ["Peperoni", "Meat Lovers", "Hawaiian", "Cheese", "Margarita"]
+toppings_list = ["Cheese", "Ham", "Pineapple", "Bacon", "Chicken"]
+
+print(make_statement("Isaacs Pizza Shop", "🍕"))
+print()
+
+want_instructions = yes_no_check("Do you want to see the instructions? ")
+if want_instructions == "yes":
     instructions()
-if yes_no_check("Do you want to see the menu? ") == "yes":
+
+print()
+want_menu = yes_no_check("Do you want to see the menu? ")
+if want_menu == "yes":
     menu()
 
-# Start ordering
-order()
+print()
+order(total_pizza_made, total_cost_pizza)
