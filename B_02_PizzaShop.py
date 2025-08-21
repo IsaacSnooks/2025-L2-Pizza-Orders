@@ -320,7 +320,7 @@ if want_menu == "yes":
 print()
 
 while True:
-
+    # buy max 3 pizzas but if less total remaining buy less
     max_remaining = MAX_PIZZAS - total_pizza_made
 
     max_allowed = min(MAX_PER_ORDER, max_remaining)
@@ -336,6 +336,7 @@ while True:
     # Add pizza to customer list
     cust_pizza.append(pizza_list[pizza_type - 1])
 
+    # pizza sizes
     print("Sizes and Prices for Pizzas: Large ($10) Medium ($7.50) Small ($5)")
 
     pizza_size = string_check("Enter the size:", size_options)
@@ -350,6 +351,7 @@ while True:
         pizza_price = 5
         pizza_size = "small"
 
+    # extra toppings on pizza
     extra_toppings = yes_no_check("Would you like extra toppings on your pizza?")
     if extra_toppings == "yes":
         ask_extra_toppings = num_check("Which extra toppings? ", 1, 5)
@@ -364,10 +366,11 @@ while True:
     else:
         print("Invalid, Please answer with yes or no.")
 
-        # Calculate total cost for this pizza order
+    # Calculate total cost for this pizza order
     single_pizza_cost = pizza_price * quantity_made
     total_cost_pizza += single_pizza_cost
 
+    # total order
     cust_order_dict = {
         'Pizza': cust_pizza,
         'Pizza Amount': quantity_made,
@@ -389,10 +392,12 @@ while True:
 
     print(f"You have spent a total of ${total_cost_pizza:.2f}")
 
+    # break if max pizza
     if total_pizza_made >= MAX_PIZZAS:
         print("max pizzas brought")
         break
 
+    # how many pizzas
     print(f"You currently have {total_pizza_made} pizzas, you can buy {MAX_PIZZAS - total_pizza_made} more pizzas!")
 
     # ask for another pizza
@@ -404,4 +409,4 @@ while True:
     elif another_pizza == "no":
         break
 
-
+print ("Thank you for shopping at Isaacs Pizzas!")
